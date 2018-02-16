@@ -1,0 +1,88 @@
+<form>
+  <label>SDK App Usage</label>
+  <description>Usage metrics for apps written using the App SDK</description>
+  <fieldset submitButton="false">
+    <input type="dropdown" token="stack" searchWhenChanged="true">
+      <label>Stack</label>
+      <choice value="*">All</choice>
+      <choice value="prod">prod</choice>
+      <choice value="emea">emea</choice>
+      <choice value="test">test</choice>
+      <choice value="sandbox">sandbox</choice>
+      <default>prod</default>
+      <initialValue>prod</initialValue>
+    </input>
+    <input type="time" token="timerange" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="sdk" searchWhenChanged="true">
+      <label>SDK</label>
+      <choice value="MashupToolkit">SDK 1.x</choice>
+      <choice value="AppSDK 2">SDK 2.x</choice>
+      <default>AppSDK 2</default>
+      <initialValue>AppSDK 2</initialValue>
+    </input>
+    <input type="dropdown" token="sub" searchWhenChanged="true">
+      <label>SubId</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <fieldForLabel>subscriptionId</fieldForLabel>
+      <fieldForValue>subscriptionId</fieldForValue>
+      <search>
+        <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" | stats count by subscriptionId</query>
+        <earliest>-4h@m</earliest>
+        <latest>now</latest>
+      </search>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Usage By App</title>
+      <table>
+        <search>
+          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" | eval app=integrationName | stats dc(subscriptionId) as subs, dc(userId) as users by app | sort subs DESC</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">40</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">true</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Usage By Sub</title>
+      <table>
+        <search>
+          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" | eval app=integrationName | stats dc(app) as apps, dc(userId) as users by subscriptionId | sort apps DESC</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="count">40</option>
+        <option name="drilldown">cell</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Overall Usage</title>
+      <table>
+        <search>
+          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" | stats dc(integrationName) as apps, dc(subscriptionId) as subs, dc(userId) as users</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</form>
