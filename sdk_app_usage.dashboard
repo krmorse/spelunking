@@ -39,13 +39,25 @@
       </search>
       <initialValue>*</initialValue>
     </input>
+    <input type="dropdown" token="app" searchWhenChanged="true">
+      <label>App</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <fieldForLabel>integrationName</fieldForLabel>
+      <fieldForValue>integrationName</fieldForValue>
+      <search>
+        <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" | stats count by integrationName</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
   </fieldset>
   <row>
     <panel>
       <title>Usage By App</title>
       <table>
         <search>
-          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" | eval app=integrationName | stats dc(subscriptionId) as subs, dc(userId) as users by app | sort subs DESC</query>
+          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" integrationName="$app$" | eval app=integrationName | stats dc(subscriptionId) as subs, dc(userId) as users by app | sort subs DESC</query>
           <earliest>$timerange.earliest$</earliest>
           <latest>$timerange.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -63,7 +75,7 @@
       <title>Usage By Sub</title>
       <table>
         <search>
-          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" | eval app=integrationName | stats dc(app) as apps, dc(userId) as users by subscriptionId | sort apps DESC</query>
+          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" integrationName="$app$" | eval app=integrationName | stats dc(app) as apps, dc(userId) as users by subscriptionId | sort apps DESC</query>
           <earliest>$timerange.earliest$</earliest>
           <latest>$timerange.latest$</latest>
         </search>
@@ -77,7 +89,7 @@
       <title>Overall Usage</title>
       <table>
         <search>
-          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$" | stats dc(integrationName) as apps, dc(subscriptionId) as subs, dc(userId) as users</query>
+          <query>sourcetype="alm-spans" requestSpan.stack="$stack$" javaRequestSpan.observations.integration-library="*$sdk$*" subscriptionId="$sub$"  integrationName="$app$" | stats dc(integrationName) as apps, dc(subscriptionId) as subs, dc(userId) as users</query>
           <earliest>$timerange.earliest$</earliest>
           <latest>$timerange.latest$</latest>
         </search>
