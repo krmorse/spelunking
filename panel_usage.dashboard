@@ -1,0 +1,65 @@
+<form>
+  <label>Panel Usage</label>
+  <fieldset submitButton="false">
+    <input type="time" token="timerange" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="slug" searchWhenChanged="true">
+      <label>Slug</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <fieldForLabel>panelName</fieldForLabel>
+      <fieldForValue>panelName</fieldForValue>
+      <search>
+        <query>sourcetype="beacon-spans" requestSpan.stack="prod" cleanedEventDescription="initial load" | eval panelName=case('panel.type' == "subscriptionapp", "subscriptionapp", true(), 'panel.slug') | stats count by panelName</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="dropdown" token="sub" searchWhenChanged="true">
+      <label>SubId</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <fieldForLabel>subId</fieldForLabel>
+      <fieldForValue>subId</fieldForValue>
+      <search>
+        <query>sourcetype="beacon-spans" requestSpan.stack="prod" cleanedEventDescription="initial load" | stats count by subId</query>
+        <earliest>-4h@m</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="page" searchWhenChanged="true">
+      <label>Page Type</label>
+      <choice value="*">All</choice>
+      <choice value="/dashboard_1">Home Dashboard</choice>
+      <choice value="/custom/:custom">Custom Page</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Panel Usage</title>
+      <table>
+        <search>
+          <query>sourcetype="beacon-spans" requestSpan.stack="prod" cleanedEventDescription="initial load" subId="$sub$" panel.slug="$slug$" cleanedPageHash="$page$" | eval panelName=case('panel.type' == "subscriptionapp", "subscriptionapp", true(), 'panel.slug') | stats count, dc(panel.oid) as panels, dc(userId) as users, dc(subId) as subs by panelName</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">true</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
